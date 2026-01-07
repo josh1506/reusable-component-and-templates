@@ -1,0 +1,154 @@
+<div class="flex items-center">
+    <h2 id="monthLabel" class="flex-auto text-sm font-semibold text-gray-900 dark:text-white">
+        <!-- JS will auto generate month in here -->
+    </h2>
+
+    <button id="prevMonthBtn" type="button"
+            class="-my-1.5 flex flex-none items-center justify-center p-1.5 text-gray-400 hover:text-gray-500 dark:text-gray-400 dark:hover:text-white">
+        <span class="sr-only">Previous month</span>
+        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5">
+            <path d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"
+                  clip-rule="evenodd" fill-rule="evenodd"/>
+        </svg>
+    </button>
+
+    <button id="nextMonthBtn" type="button"
+            class="-my-1.5 -mr-1.5 ml-2 flex flex-none items-center justify-center p-1.5 text-gray-400 hover:text-gray-500 dark:text-gray-400 dark:hover:text-white">
+        <span class="sr-only">Next month</span>
+        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5">
+            <path d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z"
+                  clip-rule="evenodd" fill-rule="evenodd"/>
+        </svg>
+    </button>
+</div>
+
+<div class="mt-10 grid grid-cols-7 text-center text-xs/6 text-gray-500 dark:text-gray-400">
+    <div>S</div>
+    <div>M</div>
+    <div>T</div>
+    <div>W</div>
+    <div>T</div>
+    <div>F</div>
+    <div>S</div>
+</div>
+
+<div id="calendarGrid" class="mt-2 grid grid-cols-7 text-sm">
+    {# JS will generate day cells in here #}
+</div>
+
+{% block js %}
+    <script>
+        (function () {
+            const monthLabelEl = document.getElementById("monthLabel");
+            const gridEl = document.getElementById("calendarGrid");
+            const prevBtn = document.getElementById("prevMonthBtn");
+            const nextBtn = document.getElementById("nextMonthBtn");
+
+            // ---- helpers ----
+            const pad2 = (n) => String(n).padStart(2, "0");
+            const isoDate = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+
+            const startOfMonth = (d) => new Date(d.getFullYear(), d.getMonth(), 1);
+            const addMonths = (d, delta) => new Date(d.getFullYear(), d.getMonth() + delta, 1);
+
+            const sameDay = (a, b) =>
+                a.getFullYear() === b.getFullYear() &&
+                a.getMonth() === b.getMonth() &&
+                a.getDate() === b.getDate();
+
+            const sameMonth = (a, b) =>
+                a.getFullYear() === b.getFullYear() &&
+                a.getMonth() === b.getMonth();
+
+            const sundayIndex = (d) => d.getDay();
+
+            // ---- state ----
+            const today = new Date();
+            let currentMonth = startOfMonth(today);
+            let selectedDate = new Date(today);
+
+            function render() {
+                // Month label (e.g. January 2026)
+                monthLabelEl.textContent = currentMonth.toLocaleString(undefined, {
+                    month: "long",
+                    year: "numeric",
+                });
+
+                // Clear grid
+                gridEl.innerHTML = "";
+
+                const first = startOfMonth(currentMonth);
+                const offset = sundayIndex(first);
+                const gridStart = new Date(first);
+                gridStart.setDate(first.getDate() - offset);
+
+
+                // 42 cells (6 weeks)
+                for (let i = 0; i < 42; i++) {
+                    const d = new Date(gridStart);
+                    d.setDate(gridStart.getDate() + i);
+
+                    const cell = document.createElement("div");
+                    if (i < 7) cell.setAttribute("data-first-line", "");
+
+                    cell.className =
+                        "py-1 not-data-first-line:border-t not-data-first-line:border-gray-200 dark:not-data-first-line:border-white/10";
+
+                    const btn = document.createElement("button");
+                    btn.type = "button";
+
+                    const isCurrent = sameMonth(d, currentMonth);
+                    const isToday = sameDay(d, today);
+                    const isSelected = selectedDate && sameDay(d, selectedDate);
+
+                    if (isCurrent) btn.setAttribute("data-is-current-month", "");
+                    if (isToday) btn.setAttribute("data-is-today", "");
+                    if (isSelected) btn.setAttribute("data-is-selected", "");
+
+                    btn.className =
+                        "mx-auto flex size-8 items-center justify-center rounded-full " +
+                        "not-data-is-selected:not-data-is-today:not-data-is-current-month:text-gray-400 " +
+                        "not-data-is-selected:hover:bg-gray-200 " +
+                        "not-data-is-selected:not-data-is-today:data-is-current-month:text-gray-900 " +
+                        "data-is-selected:font-semibold data-is-selected:text-white " +
+                        "data-is-selected:not-data-is-today:bg-gray-900 " +
+                        "data-is-today:font-semibold " +
+                        "not-data-is-selected:data-is-today:text-indigo-600 " +
+                        "data-is-selected:data-is-today:bg-indigo-600 " +
+                        "dark:not-data-is-selected:not-data-is-today:not-data-is-current-month:text-gray-500 " +
+                        "dark:not-data-is-selected:hover:bg-white/10 " +
+                        "dark:not-data-is-selected:not-data-is-today:data-is-current-month:text-white " +
+                        "dark:data-is-selected:not-data-is-today:bg-white " +
+                        "dark:data-is-selected:not-data-is-today:text-gray-900 " +
+                        "dark:not-data-is-selected:data-is-today:text-indigo-400 " +
+                        "dark:data-is-selected:data-is-today:bg-indigo-500";
+
+                    const time = document.createElement("time");
+                    time.setAttribute("datetime", isoDate(d));
+                    time.textContent = String(d.getDate());
+
+                    btn.addEventListener("click", () => {
+                        selectedDate = new Date(d);
+                        render();
+                    });
+
+                    btn.appendChild(time);
+                    cell.appendChild(btn);
+                    gridEl.appendChild(cell);
+                }
+            }
+
+            prevBtn.addEventListener("click", () => {
+                currentMonth = addMonths(currentMonth, -1);
+                render();
+            });
+
+            nextBtn.addEventListener("click", () => {
+                currentMonth = addMonths(currentMonth, 1);
+                render();
+            });
+
+            render();
+        })();
+    </script>
+{% endblock %}

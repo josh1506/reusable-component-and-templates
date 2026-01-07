@@ -1,0 +1,451 @@
+<div class="isolate flex flex-auto flex-col overflow-auto">
+    <div style="width: 165%" class="flex max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
+
+        <!-- Header controls row -->
+        <div class="flex items-center justify-between px-4 py-3 lg:flex-none w-full bg-gray-800/50">
+            <div class="flex items-center gap-2">
+                <div>
+                    <div class="relative flex items-center rounded-md bg-white shadow-xs outline -outline-offset-1 outline-gray-300 md:items-stretch dark:bg-white/10 dark:shadow-none dark:outline-white/5">
+                        <button type="button" id="w-calPrev"
+                                class="flex h-9 w-12 items-center justify-center rounded-l-md pr-1 text-gray-400 hover:text-gray-500 focus:relative md:w-9 md:pr-0 md:hover:bg-gray-50 dark:hover:text-white dark:md:hover:bg-white/10">
+                            <span class="sr-only">Previous week</span>
+                            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5">
+                                <path d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"
+                                      clip-rule="evenodd" fill-rule="evenodd"/>
+                            </svg>
+                        </button>
+
+                        <button type="button" id="w-calToday"
+                                class="hidden px-3.5 text-sm font-semibold text-gray-900 hover:bg-gray-50 focus:relative md:block dark:text-white dark:hover:bg-white/10">
+                            Today
+                        </button>
+
+                        <span class="relative -mx-px h-5 w-px bg-gray-300 md:hidden dark:bg-white/10"></span>
+
+                        <button type="button" id="w-calNext"
+                                class="flex h-9 w-12 items-center justify-center rounded-r-md pl-1 text-gray-400 hover:text-gray-500 focus:relative md:w-9 md:pl-0 md:hover:bg-gray-50 dark:hover:text-white dark:md:hover:bg-white/10">
+                            <span class="sr-only">Next week</span>
+                            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5">
+                                <path d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z"
+                                      clip-rule="evenodd" fill-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="text-sm font-semibold text-gray-900 dark:text-white" id="weekTitle"></div>
+            </div>
+
+            <!-- Dropdown menu for selecting Day, Week, or Month view -->
+            <select id="w-calendar-view-type"
+                    class="flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-xs inset-ring inset-ring-gray-300 hover:bg-gray-50 dark:bg-white/10 dark:text-white dark:shadow-none dark:inset-ring-white/5 dark:hover:bg-white/20">
+                <option class="text-black" value="day">Day</option>
+                <option class="text-black" value="week" selected>Week</option>
+                <option class="text-black" value="month">Month</option>
+            </select>
+        </div>
+
+        <div class="bg-white dark:bg-gray-900">
+
+            <!-- Sticky header -->
+            <div class="sticky top-0 z-30 flex-none bg-white shadow-sm ring-1 ring-black/5 sm:pr-8 dark:bg-gray-900 dark:shadow-none dark:ring-white/20">
+
+                <!-- Mobile day strip (dynamic) -->
+                <div id="weekHeaderMobile"
+                     class="grid grid-cols-7 text-sm/6 text-gray-500 sm:hidden dark:text-gray-400"></div>
+
+                <!-- Desktop header (dynamic) -->
+                <div id="weekHeaderDesktop"
+                     class="-mr-px hidden grid-cols-7 divide-x divide-gray-100 border-r border-gray-100 text-sm/6 text-gray-500 sm:grid dark:divide-white/10 dark:border-white/10 dark:text-gray-400">
+                </div>
+            </div>
+
+            <div class="flex flex-auto">
+                <div class="sticky left-0 z-10 w-14 flex-none bg-white ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-white/5"></div>
+
+                <div class="grid flex-auto grid-cols-1 grid-rows-1">
+
+                    <!-- Horizontal lines + time labels (dynamic) -->
+                    <div id="timeLinesWeekly"
+                         style="grid-template-rows: repeat(48, minmax(3.5rem, 1fr))"
+                         class="col-start-1 col-end-2 row-start-1 grid divide-y divide-gray-100 dark:divide-white/5">
+                    </div>
+
+                    <!-- Vertical day dividers (same layout) -->
+                    <div class="col-start-1 col-end-2 row-start-1 hidden grid-rows-1 divide-x divide-gray-100 sm:grid sm:grid-cols-7 dark:divide-white/5">
+                        <div class="col-start-1 row-span-full"></div>
+                        <div class="col-start-2 row-span-full"></div>
+                        <div class="col-start-3 row-span-full"></div>
+                        <div class="col-start-4 row-span-full"></div>
+                        <div class="col-start-5 row-span-full"></div>
+                        <div class="col-start-6 row-span-full"></div>
+                        <div class="col-start-7 row-span-full"></div>
+                        <div class="col-start-8 row-span-full w-8"></div>
+                    </div>
+
+                    <!-- Events layer (dynamic) -->
+                    <ol id="eventsWeekly"
+                        style="grid-template-rows: 1.75rem repeat(288, minmax(0, 1fr)) auto"
+                        class="col-start-1 col-end-2 row-start-1 grid grid-cols-1 sm:grid-cols-7 sm:pr-8">
+                    </ol>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block js %}
+    <script>
+        // ---------- Load events_json data ----------
+        window.eventsFromDjango = (function () {
+            try {
+                return JSON.parse('{{ events_json|default:"[]"|escapejs }}');
+            } catch (e) {
+                console.warn("events_json parse failed", e);
+                return [];
+            }
+        })();
+    </script>
+
+    <script>
+        (() => {
+            const $ = (id) => document.getElementById(id);
+
+            // ---------- helpers ----------
+            const pad2 = (n) => String(n).padStart(2, "0");
+            const startOfDay = (d) => {
+                const x = new Date(d);
+                x.setHours(0, 0, 0, 0);
+                return x;
+            };
+            const addDays = (d, n) => {
+                const x = new Date(d);
+                x.setDate(x.getDate() + n);
+                return x;
+            };
+            const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+            const isoDate = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+            const minutesFromMidnight = (dt) => dt.getHours() * 60 + dt.getMinutes();
+
+            function startOfWeekMonday(date) {
+                const d = startOfDay(date);
+                const mondayIndex = (d.getDay() + 6) % 7; // Mon=0..Sun=6
+                return addDays(d, -mondayIndex);
+            }
+
+            function themeClasses(theme) {
+                const map = {
+                    blue: {
+                        bg: "bg-blue-50 hover:bg-blue-100 dark:bg-blue-600/15 dark:hover:bg-blue-600/20",
+                        text1: "text-blue-700 dark:text-blue-300",
+                        text2: "text-blue-500 group-hover:text-blue-700 dark:text-blue-400 dark:group-hover:text-blue-300"
+                    },
+                    pink: {
+                        bg: "bg-pink-50 hover:bg-pink-100 dark:bg-pink-600/15 dark:hover:bg-pink-600/20",
+                        text1: "text-pink-700 dark:text-pink-300",
+                        text2: "text-pink-500 group-hover:text-pink-700 dark:text-pink-400 dark:group-hover:text-pink-300"
+                    },
+                    indigo: {
+                        bg: "bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-600/15 dark:hover:bg-indigo-600/20",
+                        text1: "text-indigo-700 dark:text-indigo-300",
+                        text2: "text-indigo-500 group-hover:text-indigo-700 dark:text-indigo-400 dark:group-hover:text-indigo-300"
+                    },
+                    gray: {
+                        bg: "bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/15",
+                        text1: "text-gray-700 dark:text-gray-300",
+                        text2: "text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300"
+                    },
+                };
+                return map[theme] || map.blue;
+            }
+
+            // ---------- data ----------
+            const today = startOfDay(new Date());
+
+            function mockForWeek(weekStart) {
+                const wed = addDays(weekStart, 2);
+                const sat = addDays(weekStart, 5);
+                return [
+                    {
+                        title: "Breakfast",
+                        start: `${isoDate(wed)}T06:00`,
+                        end: `${isoDate(wed)}T06:30`,
+                        location: "",
+                        theme: "blue"
+                    },
+                    {
+                        title: "Flight to Paris",
+                        start: `${isoDate(wed)}T07:30`,
+                        end: `${isoDate(wed)}T10:00`,
+                        location: "John F. Kennedy International Airport",
+                        theme: "pink"
+                    },
+                    {
+                        title: "Meeting with design team at Disney",
+                        start: `${isoDate(sat)}T10:00`,
+                        end: `${isoDate(sat)}T12:00`,
+                        location: "",
+                        theme: "gray"
+                    },
+                ];
+            }
+
+            let selectedDate = today;
+            let weekStart = startOfWeekMonday(selectedDate);
+
+            const initialEvents = Array.isArray(window.eventsFromDjango) ? window.eventsFromDjango : [];
+            const events = initialEvents.length ? initialEvents : mockForWeek(weekStart);
+
+            // if first event isn't in current week, jump to its week
+            if (events[0]?.start) {
+                const firstEventDate = startOfDay(new Date(events[0].start));
+                weekStart = startOfWeekMonday(firstEventDate);
+                selectedDate = firstEventDate;
+            }
+
+            // ---------- week title ----------
+            function renderWeekTitle() {
+                const el = $("weekTitle");
+                if (!el) return;
+
+                const start = weekStart;
+                const end = addDays(weekStart, 6);
+
+                const sameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+                const sameYear = start.getFullYear() === end.getFullYear();
+
+                const fmtStart = new Intl.DateTimeFormat(undefined, {
+                    month: "long",
+                    day: "numeric",
+                    ...(sameYear ? {} : {year: "numeric"}),
+                });
+                const fmtEnd = new Intl.DateTimeFormat(undefined, {
+                    month: sameMonth ? undefined : "long",
+                    day: "numeric",
+                    year: "numeric",
+                });
+
+                el.textContent = `${fmtStart.format(start)} – ${fmtEnd.format(end)}`;
+            }
+
+            // ---------- render header ----------
+            function renderHeader() {
+                const mobile = $("weekHeaderMobile");
+                const desktop = $("weekHeaderDesktop");
+                if (!mobile || !desktop) return;
+
+                const days = Array.from({length: 7}, (_, i) => addDays(weekStart, i));
+                const mobileLetters = ["M", "T", "W", "T", "F", "S", "S"];
+                const desktopNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+                // Mobile
+                mobile.innerHTML = days.map((d, idx) => {
+                    const isSel = sameDay(d, selectedDate);
+                    const isTod = sameDay(d, today);
+
+                    let numCls = "mt-1 flex size-8 items-center justify-center font-semibold text-gray-900 dark:text-white";
+                    if (isSel) numCls = "mt-1 flex size-8 items-center justify-center rounded-full bg-indigo-600 font-semibold text-white dark:bg-indigo-500";
+                    if (!isSel && isTod) numCls = "mt-1 flex size-8 items-center justify-center font-semibold text-indigo-600 dark:text-indigo-400";
+
+                    return `
+                        <button type="button" data-date="${isoDate(d)}" class="flex flex-col items-center pt-2 pb-3">
+                            ${mobileLetters[idx]}
+                            <span class="${numCls}">${d.getDate()}</span>
+                        </button>
+                    `;
+                }).join("");
+
+                // Desktop
+                desktop.innerHTML = `
+                    <div class="col-end-1 w-14"></div>
+                    ${days.map((d, idx) => {
+                    const isSel = sameDay(d, selectedDate);
+                    const isTod = sameDay(d, today);
+
+                    if (isSel) {
+                        return `
+                                <div class="flex items-center justify-center py-3">
+                                    <span class="flex items-baseline">
+                                        ${desktopNames[idx]}
+                                        <span class="ml-1.5 flex size-8 items-center justify-center rounded-full bg-indigo-600 font-semibold text-white dark:bg-indigo-500">
+                                            ${d.getDate()}
+                                        </span>
+                                    </span>
+                                </div>
+                            `;
+                    }
+
+                    const dayNumCls = isTod
+                        ? "items-center justify-center font-semibold text-indigo-600 dark:text-indigo-400"
+                        : "items-center justify-center font-semibold text-gray-900 dark:text-white";
+
+                    return `
+                            <div class="flex items-center justify-center py-3">
+                                <span>${desktopNames[idx]} <span class="${dayNumCls}">${d.getDate()}</span></span>
+                            </div>
+                    `;
+                }).join("")}
+                `;
+
+                // click handlers (mobile only)
+                mobile.querySelectorAll("button[data-date]").forEach(btn => {
+                    btn.addEventListener("click", () => {
+                        selectedDate = startOfDay(new Date(btn.dataset.date + "T00:00"));
+                        weekStart = startOfWeekMonday(selectedDate);
+                        renderAll();
+                    });
+                });
+            }
+
+            // ---------- render time lines ----------
+            function renderTimeLines() {
+                const el = $("timeLinesWeekly");
+                if (!el) return;
+
+                let html = `<div class="row-end-1 h-7"></div>`;
+
+                for (let slot = 1; slot < 48; slot++) {
+                    const isHour = (slot % 2 === 1);
+                    if (isHour) {
+                        const hour = Math.floor((slot - 1) / 2);
+                        const dt = new Date(weekStart);
+                        dt.setHours(hour, 0, 0, 0);
+
+                        const label = dt.toLocaleTimeString([], {
+                            hour: "numeric",
+                            minute: "2-digit"
+                        }).replace(":00", "");
+                        html += `
+                            <div>
+                                <div class="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs/5 text-gray-400 dark:text-gray-500">
+                                    ${label}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        html += `<div></div>`;
+                    }
+                }
+
+                el.innerHTML = html;
+            }
+
+            // ---------- render events ----------
+            function renderEvents() {
+                const el = $("eventsWeekly");
+                if (!el) return;
+
+                const days = Array.from({length: 7}, (_, i) => addDays(weekStart, i));
+                const weekIsoSet = new Set(days.map(d => isoDate(d)));
+
+                const eventsInWeek = events.filter(e => weekIsoSet.has((e.start || "").slice(0, 10)));
+
+                el.innerHTML = eventsInWeek.map(ev => {
+                    const start = new Date(ev.start);
+                    const end = ev.end ? new Date(ev.end) : new Date(start.getTime() + 30 * 60000);
+
+                    const dayIndex = (start.getDay() + 6) % 7; // Mon=0..Sun=6
+                    const colStart = dayIndex + 1;
+
+                    const startMin = minutesFromMidnight(start);
+                    const endMin = minutesFromMidnight(end);
+                    const dur = Math.max(5, endMin - startMin);
+
+                    const startRow = 2 + Math.floor(startMin / 5);
+                    const spanRows = Math.max(1, Math.ceil(dur / 5));
+
+                    const t = themeClasses(ev.theme);
+
+                    return `
+                        <li style="grid-row: ${startRow} / span ${spanRows}"
+                            class="relative mt-px flex sm:col-start-${colStart} dark:before:pointer-events-none dark:before:absolute dark:before:inset-1 dark:before:z-0 dark:before:rounded-lg dark:before:bg-gray-900">
+                            <a href="#"
+                                class="group absolute inset-1 flex flex-col overflow-y-auto rounded-lg p-2 text-xs/5 ${t.bg}">
+                                <p class="order-1 font-semibold ${t.text1}">${ev.title || ""}</p>
+                                    ${ev.location ? `<p class="order-1 ${t.text2}">${ev.location}</p>` : ``}
+                                <p class="${t.text2}">
+                                    <time datetime="${ev.start}">
+                                        ${start.toLocaleTimeString([], {hour: "numeric", minute: "2-digit"})}
+                                    </time>
+                                </p>
+                            </a>
+                        </li>
+                    `;
+                }).join("");
+            }
+
+            // prev / today / next week
+            function bindWeekNav() {
+                const prev = $("w-calPrev");
+                const next = $("w-calNext");
+                const tdy = $("w-calToday");
+
+                if (prev) prev.addEventListener("click", () => {
+                    weekStart = addDays(weekStart, -7);
+                    selectedDate = weekStart;
+                    renderAll();
+                });
+
+                if (next) next.addEventListener("click", () => {
+                    weekStart = addDays(weekStart, 7);
+                    selectedDate = weekStart;
+                    renderAll();
+                });
+
+                if (tdy) tdy.addEventListener("click", () => {
+                    selectedDate = today;
+                    weekStart = startOfWeekMonday(today);
+                    renderAll();
+                });
+            }
+
+            // dropdown
+            function bindViewDropdown() {
+                const calendarViewType = $("w-calendar-view-type");
+                if (!calendarViewType) return;
+
+                calendarViewType.addEventListener("change", () => {
+                    const calendarMonthContainer = document.getElementById("calendar-month-container");
+                    const calendarWeekContainer = document.getElementById("calendar-week-container");
+                    const calendarDayContainer = document.getElementById("calendar-day-container");
+
+                    if (calendarMonthContainer) calendarMonthContainer.classList.add("hidden");
+                    if (calendarWeekContainer) calendarWeekContainer.classList.add("hidden");
+                    if (calendarDayContainer) calendarDayContainer.classList.add("hidden");
+
+                    const selected = calendarViewType.value;
+                    switch (selected) {
+                        case "day":
+                            if (calendarDayContainer) calendarDayContainer.classList.remove("hidden");
+                            break;
+                        case "week":
+                            if (calendarWeekContainer) calendarWeekContainer.classList.remove("hidden");
+                            break;
+                        default:
+                            if (calendarMonthContainer) calendarMonthContainer.classList.remove("hidden");
+                    }
+
+                    // sync other dropdowns if they exist (prevents null crash)
+                    const mCalendarViewType = document.getElementById("m-calendar-view-type");
+                    const dCalendarViewType = document.getElementById("d-calendar-view-type");
+                    if (mCalendarViewType) mCalendarViewType.value = selected;
+                    if (dCalendarViewType) dCalendarViewType.value = selected;
+                });
+            }
+
+            function renderAll() {
+                renderWeekTitle();
+                renderHeader();
+                renderTimeLines();
+                renderEvents();
+            }
+
+            document.addEventListener("DOMContentLoaded", () => {
+                bindWeekNav();
+                bindViewDropdown();
+                renderAll();
+            });
+        })();
+    </script>
+{% endblock %}

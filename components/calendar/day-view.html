@@ -1,0 +1,468 @@
+<div class="flex h-full flex-col">
+    <!-- Day header controls (Prev / Today / Next) -->
+    <div class="flex items-center justify-between px-4 py-3 lg:flex-none bg-gray-800/50">
+        <div class="flex items-center gap-2">
+            <div>
+                <div class="relative flex items-center rounded-md bg-white shadow-xs outline -outline-offset-1 outline-gray-300 md:items-stretch dark:bg-white/10 dark:shadow-none dark:outline-white/5">
+                    <button type="button" id="d-calPrev"
+                            class="flex h-9 w-12 items-center justify-center rounded-l-md pr-1 text-gray-400 hover:text-gray-500 focus:relative md:w-9 md:pr-0 md:hover:bg-gray-50 dark:hover:text-white dark:md:hover:bg-white/10">
+                        <span class="sr-only">Previous day</span>
+                        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5">
+                            <path d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"
+                                  clip-rule="evenodd" fill-rule="evenodd"/>
+                        </svg>
+                    </button>
+
+                    <button type="button" id="d-calToday"
+                            class="hidden px-3.5 text-sm font-semibold text-gray-900 hover:bg-gray-50 focus:relative md:block dark:text-white dark:hover:bg-white/10">
+                        Today
+                    </button>
+
+                    <span class="relative -mx-px h-5 w-px bg-gray-300 md:hidden dark:bg-white/10"></span>
+
+                    <button type="button" id="d-calNext"
+                            class="flex h-9 w-12 items-center justify-center rounded-r-md pl-1 text-gray-400 hover:text-gray-500 focus:relative md:w-9 md:pl-0 md:hover:bg-gray-50 dark:hover:text-white dark:md:hover:bg-white/10">
+                        <span class="sr-only">Next day</span>
+                        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5">
+                            <path d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z"
+                                  clip-rule="evenodd" fill-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="text-sm font-semibold text-gray-900 dark:text-white" id="dayTitle"></div>
+        </div>
+
+        <!-- Dropdown menu for selecting Day, Week, or Month view -->
+        <select id="d-calendar-view-type"
+                class="flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-xs inset-ring inset-ring-gray-300 hover:bg-gray-50 dark:bg-white/10 dark:text-white dark:shadow-none dark:inset-ring-white/5 dark:hover:bg-white/20">
+            <option class="text-black" value="day" selected>Day</option>
+            <option class="text-black" value="week">Week</option>
+            <option class="text-black" value="month">Month</option>
+        </select>
+    </div>
+
+    <div class="isolate flex flex-auto overflow-hidden bg-white dark:bg-gray-900">
+        <div class="flex flex-auto flex-col overflow-auto">
+
+            <!-- Mobile day strip (dynamic) -->
+            <div
+                    id="mobileDayStrip"
+                    class="sticky top-0 z-10 grid flex-none grid-cols-7 bg-white text-xs text-gray-500 shadow-sm ring-1 ring-black/5 md:hidden dark:bg-gray-900 dark:text-gray-400 dark:shadow-none dark:ring-white/20">
+            </div>
+
+            <div class="flex w-full flex-auto">
+                <div class="w-14 flex-none bg-white ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-white/5"></div>
+
+                <div class="grid flex-auto grid-cols-1 grid-rows-1">
+                    <div
+                            id="timeLines"
+                            style="grid-template-rows: repeat(48, minmax(3.5rem, 1fr))"
+                            class="col-start-1 col-end-2 row-start-1 grid divide-y divide-gray-100 dark:divide-white/5">
+                    </div>
+
+                    <ol
+                            id="eventsLayer"
+                            style="grid-template-rows: 1.75rem repeat(288, minmax(0, 1fr)) auto"
+                            class="col-start-1 col-end-2 row-start-1 grid grid-cols-1">
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right mini month (dynamic) -->
+        <div class="hidden w-1/2 max-w-md flex-none border-l border-gray-100 px-8 py-10 md:block dark:border-white/10">
+            <div class="flex items-center text-center text-gray-900 dark:text-white">
+                <button id="miniPrev" type="button"
+                        class="-m-1.5 flex flex-none items-center justify-center p-1.5 text-gray-400 hover:text-gray-500 dark:text-gray-400 dark:hover:text-white">
+                    <span class="sr-only">Previous month</span>
+                    <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5">
+                        <path d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"
+                              clip-rule="evenodd" fill-rule="evenodd"/>
+                    </svg>
+                </button>
+
+                <div id="miniTitle" class="flex-auto text-sm font-semibold"></div>
+
+                <button id="miniNext" type="button"
+                        class="-m-1.5 flex flex-none items-center justify-center p-1.5 text-gray-400 hover:text-gray-500 dark:text-gray-400 dark:hover:text-white">
+                    <span class="sr-only">Next month</span>
+                    <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5">
+                        <path d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z"
+                              clip-rule="evenodd" fill-rule="evenodd"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="mt-6 grid grid-cols-7 text-center text-xs/6 text-gray-500 dark:text-gray-400">
+                <div>M</div>
+                <div>T</div>
+                <div>W</div>
+                <div>T</div>
+                <div>F</div>
+                <div>S</div>
+                <div>S</div>
+            </div>
+
+            <div
+                    id="miniGrid"
+                    class="isolate mt-2 grid grid-cols-7 gap-px rounded-lg bg-gray-200 text-sm shadow-sm ring-1 ring-gray-200 dark:bg-white/10 dark:shadow-none dark:ring-white/10">
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block js %}
+    <script>
+        window.eventsFromDjango = (function () {
+            try {
+                const raw = '{{ events_json|default:"[]"|escapejs }}';
+                return JSON.parse(raw);
+            } catch (e) {
+                console.warn("events_json parse failed", e);
+                return [];
+            }
+        })();
+    </script>
+
+    <script>
+        (() => {
+            const $ = (id) => document.getElementById(id);
+
+            const pad2 = (n) => String(n).padStart(2, "0");
+            const startOfDay = (d) => {
+                const x = new Date(d);
+                x.setHours(0, 0, 0, 0);
+                return x;
+            };
+            const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+            const addDays = (d, n) => {
+                const x = new Date(d);
+                x.setDate(x.getDate() + n);
+                return x;
+            };
+            const isoDate = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+
+            function startOfMonthGridMonday(monthDate) {
+                const first = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+                const mondayIndex = (first.getDay() + 6) % 7;
+                first.setDate(first.getDate() - mondayIndex);
+                return startOfDay(first);
+            }
+
+            function startOfWeekMonday(date) {
+                const d = startOfDay(date);
+                const mondayIndex = (d.getDay() + 6) % 7;
+                return addDays(d, -mondayIndex);
+            }
+
+            const mockEvents = [
+                {
+                    title: "Breakfast",
+                    start: `${isoDate(new Date())}T06:00`,
+                    end: `${isoDate(new Date())}T06:30`,
+                    location: "",
+                    theme: "blue"
+                },
+                {
+                    title: "Flight to Paris",
+                    start: `${isoDate(new Date())}T07:30`,
+                    end: `${isoDate(new Date())}T10:00`,
+                    location: "John F. Kennedy International Airport",
+                    theme: "pink"
+                },
+                {
+                    title: "Sightseeing",
+                    start: `${isoDate(new Date())}T11:00`,
+                    end: `${isoDate(new Date())}T12:30`,
+                    location: "Eiffel Tower",
+                    theme: "indigo"
+                },
+            ];
+
+            const events = (Array.isArray(window.eventsFromDjango) && window.eventsFromDjango.length)
+                ? window.eventsFromDjango
+                : mockEvents;
+
+            const today = startOfDay(new Date());
+            const firstEventDate = events[0]?.start ? startOfDay(new Date(events[0].start)) : today;
+
+            let selectedDate = firstEventDate;
+            let miniMonth = startOfDay(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1));
+
+            function renderDayTitle() {
+                const el = $("dayTitle");
+                if (!el) return;
+
+                const isT = sameDay(selectedDate, today);
+                const fmt = new Intl.DateTimeFormat(undefined, {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                });
+
+                el.textContent = isT ? `Today • ${fmt.format(selectedDate)}` : fmt.format(selectedDate);
+            }
+
+            function themeClasses(theme) {
+                const map = {
+                    blue: {
+                        bg: "bg-blue-50 hover:bg-blue-100 dark:bg-blue-600/15 dark:hover:bg-blue-600/20",
+                        text1: "text-blue-700 dark:text-blue-300",
+                        text2: "text-blue-500 group-hover:text-blue-700 dark:text-blue-400 dark:group-hover:text-blue-300"
+                    },
+                    pink: {
+                        bg: "bg-pink-50 hover:bg-pink-100 dark:bg-pink-600/15 dark:hover:bg-pink-600/20",
+                        text1: "text-pink-700 dark:text-pink-300",
+                        text2: "text-pink-500 group-hover:text-pink-700 dark:text-pink-400 dark:group-hover:text-pink-300"
+                    },
+                    indigo: {
+                        bg: "bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-600/15 dark:hover:bg-indigo-600/20",
+                        text1: "text-indigo-700 dark:text-indigo-300",
+                        text2: "text-indigo-500 group-hover:text-indigo-700 dark:text-indigo-400 dark:group-hover:text-indigo-300"
+                    },
+                };
+                return map[theme] || map.blue;
+            }
+
+            function renderTimeLines() {
+                const el = $("timeLines");
+                if (!el) return;
+
+                let html = `<div class="row-end-1 h-7"></div>`;
+
+                for (let slot = 1; slot < 48; slot++) {
+                    const isHour = (slot % 2 === 1);
+                    if (isHour) {
+                        const hour = Math.floor((slot - 1) / 2);
+                        const dt = new Date(selectedDate);
+                        dt.setHours(hour, 0, 0, 0);
+
+                        const label = dt.toLocaleTimeString([], {
+                            hour: "numeric",
+                            minute: "2-digit"
+                        }).replace(":00", "");
+                        html += `
+                            <div>
+                                <div class="-mt-2.5 -ml-14 w-14 pr-2 text-right text-xs/5 text-gray-400 dark:text-gray-500">${label}</div>
+                            </div>
+                        `;
+                    } else {
+                        html += `<div></div>`;
+                    }
+                }
+
+                el.innerHTML = html;
+            }
+
+            function minutesFromMidnight(dt) {
+                return dt.getHours() * 60 + dt.getMinutes();
+            }
+
+            function renderEvents() {
+                const el = $("eventsLayer");
+                if (!el) return;
+
+                const dayIso = isoDate(selectedDate);
+                const todays = events.filter(e => (e.start || "").slice(0, 10) === dayIso);
+
+                el.innerHTML = todays.map(ev => {
+                    const start = new Date(ev.start);
+                    const end = ev.end ? new Date(ev.end) : new Date(start.getTime() + 30 * 60000);
+
+                    const startMin = minutesFromMidnight(start);
+                    const endMin = minutesFromMidnight(end);
+                    const dur = Math.max(5, endMin - startMin);
+
+                    const startRow = 2 + Math.floor(startMin / 5);
+                    const spanRows = Math.max(1, Math.ceil(dur / 5));
+
+                    const t = themeClasses(ev.theme);
+
+                    return `
+                        <li style="grid-row: ${startRow} / span ${spanRows}" class="relative mt-px flex dark:before:pointer-events-none dark:before:absolute dark:before:inset-1 dark:before:z-0 dark:before:rounded-lg dark:before:bg-gray-900">
+                            <a href="#"
+                            class="group absolute inset-1 flex flex-col overflow-y-auto rounded-lg p-2 text-xs/5 ${t.bg}">
+                                <p class="order-1 font-semibold ${t.text1}">${ev.title || ""}</p>
+                                ${ev.location ? `<p class="order-1 ${t.text2}">${ev.location}</p>` : ``}
+                                <p class="${t.text2}">
+                                    <time datetime="${ev.start}">
+                                    ${start.toLocaleTimeString([], {hour: "numeric", minute: "2-digit"})}
+                                    </time>
+                                </p>
+                            </a>
+                        </li>
+                    `;
+                }).join("");
+            }
+
+            function renderMobileDayStrip() {
+                const el = $("mobileDayStrip");
+                if (!el) return;
+
+                const weekStart = startOfWeekMonday(selectedDate);
+                const letters = ["M", "T", "W", "T", "F", "S", "S"];
+                const days = Array.from({length: 7}, (_, i) => addDays(weekStart, i));
+
+                el.innerHTML = days.map((d, idx) => {
+                    const isToday = sameDay(d, today);
+                    const isSelected = sameDay(d, selectedDate);
+
+                    let numCls = "mt-3 flex size-8 items-center justify-center rounded-full text-base font-semibold ";
+                    if (isSelected && isToday) numCls += "bg-indigo-600 text-white dark:bg-indigo-500";
+                    else if (isSelected) numCls += "bg-gray-900 text-white dark:bg-white dark:text-gray-900";
+                    else if (isToday) numCls += "text-indigo-600 dark:text-indigo-400";
+                    else numCls += "text-gray-900 dark:text-white";
+
+                    return `
+                        <button type="button" class="flex flex-col items-center pt-3 pb-1.5" data-date="${isoDate(d)}">
+                            <span>${letters[idx]}</span>
+                            <span class="${numCls}">${d.getDate()}</span>
+                        </button>
+                    `;
+                }).join("");
+
+                el.querySelectorAll("button[data-date]").forEach(btn => {
+                    btn.addEventListener("click", () => {
+                        selectedDate = startOfDay(new Date(btn.dataset.date + "T00:00"));
+                        miniMonth = startOfDay(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1));
+                        renderAll();
+                    });
+                });
+            }
+
+            function renderMiniCalendar() {
+                const title = $("miniTitle");
+                const grid = $("miniGrid");
+                if (!title || !grid) return;
+
+                title.textContent = miniMonth.toLocaleDateString([], {month: "long", year: "numeric"});
+
+                const start = startOfMonthGridMonday(miniMonth);
+                const cells = Array.from({length: 42}, (_, i) => addDays(start, i));
+
+                grid.innerHTML = cells.map(d => {
+                    const isCurrent = d.getMonth() === miniMonth.getMonth();
+                    const isToday = sameDay(d, today);
+                    const isSelected = sameDay(d, selectedDate);
+
+                    const attrs = [
+                        isCurrent ? "data-is-current-month" : "",
+                        isToday ? "data-is-today" : "",
+                        isSelected ? "data-is-selected" : "",
+                    ].filter(Boolean).join(" ");
+
+                    return `
+                        <button type="button" ${attrs}
+                            data-date="${isoDate(d)}"
+                            class="py-1.5 not-data-is-current-month:bg-gray-50 not-data-is-selected:not-data-is-current-month:not-data-is-today:text-gray-400 first:rounded-tl-lg last:rounded-br-lg hover:bg-gray-100 focus:z-10 data-is-current-month:bg-white not-data-is-selected:data-is-current-month:not-data-is-today:text-gray-900 data-is-current-month:hover:bg-gray-100 data-is-selected:font-semibold data-is-selected:text-white data-is-today:font-semibold data-is-today:not-data-is-selected:text-indigo-600 nth-36:rounded-bl-lg nth-7:rounded-tr-lg dark:not-data-is-current-month:bg-gray-900/75 dark:not-data-is-selected:not-data-is-current-month:not-data-is-today:text-gray-500 dark:hover:bg-gray-900/25 dark:data-is-current-month:bg-gray-900/90 dark:not-data-is-selected:data-is-current-month:not-data-is-today:text-white dark:data-is-current-month:hover:bg-gray-900/50 dark:data-is-selected:text-gray-900 dark:data-is-today:not-data-is-selected:text-indigo-400">
+                            <time datetime="${isoDate(d)}"
+                            class="mx-auto flex size-7 items-center justify-center rounded-full in-data-is-selected:not-in-data-is-today:bg-gray-900 in-data-is-selected:in-data-is-today:bg-indigo-600 dark:in-data-is-selected:not-in-data-is-today:bg-white dark:in-data-is-selected:in-data-is-today:bg-indigo-500">
+                            ${d.getDate()}
+                            </time>
+                        </button>
+                    `;
+                }).join("");
+
+                grid.querySelectorAll("button[data-date]").forEach(btn => {
+                    btn.addEventListener("click", () => {
+                        selectedDate = startOfDay(new Date(btn.dataset.date + "T00:00"));
+                        miniMonth = startOfDay(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1));
+                        renderAll();
+                    });
+                });
+            }
+
+            function bindMiniNav() {
+                const prev = $("miniPrev");
+                const next = $("miniNext");
+
+                if (prev) prev.addEventListener("click", () => {
+                    miniMonth = startOfDay(new Date(miniMonth.getFullYear(), miniMonth.getMonth() - 1, 1));
+                    renderMiniCalendar();
+                });
+
+                if (next) next.addEventListener("click", () => {
+                    miniMonth = startOfDay(new Date(miniMonth.getFullYear(), miniMonth.getMonth() + 1, 1));
+                    renderMiniCalendar();
+                });
+            }
+
+            function bindDayHeaderNav() {
+                const prev = $("d-calPrev");
+                const next = $("d-calNext");
+                const tdy = $("d-calToday");
+
+                if (prev) prev.addEventListener("click", () => {
+                    selectedDate = addDays(selectedDate, -1);
+                    miniMonth = startOfDay(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1));
+                    renderAll();
+                });
+
+                if (next) next.addEventListener("click", () => {
+                    selectedDate = addDays(selectedDate, 1);
+                    miniMonth = startOfDay(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1));
+                    renderAll();
+                });
+
+                if (tdy) tdy.addEventListener("click", () => {
+                    selectedDate = startOfDay(new Date());
+                    miniMonth = startOfDay(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1));
+                    renderAll();
+                });
+            }
+
+            // Dropdown behavior for DAY page
+            function bindViewDropdownDay() {
+                const calendarViewType = $("d-calendar-view-type");
+                if (!calendarViewType) return;
+
+                calendarViewType.addEventListener("change", () => {
+                    const calendarMonthContainer = document.getElementById("calendar-month-container");
+                    const calendarWeekContainer = document.getElementById("calendar-week-container");
+                    const calendarDayContainer = document.getElementById("calendar-day-container");
+
+                    if (calendarMonthContainer) calendarMonthContainer.classList.add("hidden");
+                    if (calendarWeekContainer) calendarWeekContainer.classList.add("hidden");
+                    if (calendarDayContainer) calendarDayContainer.classList.add("hidden");
+
+                    const selected = calendarViewType.value;
+                    switch (selected) {
+                        case "day":
+                            if (calendarDayContainer) calendarDayContainer.classList.remove("hidden");
+                            break;
+                        case "week":
+                            if (calendarWeekContainer) calendarWeekContainer.classList.remove("hidden");
+                            break;
+                        default:
+                            if (calendarMonthContainer) calendarMonthContainer.classList.remove("hidden");
+                    }
+
+                    // ---------- Modify other header dropdown ----------
+                    const mCalendarViewType = document.getElementById("m-calendar-view-type")
+                    const wCalendarViewType = document.getElementById("w-calendar-view-type")
+
+                    if (mCalendarViewType) mCalendarViewType.value = selected;
+                    if (wCalendarViewType) wCalendarViewType.value = selected;
+                });
+            }
+
+            function renderAll() {
+                renderDayTitle();
+                renderMobileDayStrip();
+                renderTimeLines();
+                renderEvents();
+                renderMiniCalendar();
+            }
+
+            document.addEventListener("DOMContentLoaded", () => {
+                bindDayHeaderNav();
+                bindViewDropdownDay();
+                bindMiniNav();
+                renderAll();
+            });
+        })();
+    </script>
+{% endblock %}

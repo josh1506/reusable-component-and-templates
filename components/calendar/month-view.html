@@ -1,0 +1,434 @@
+<div class="h-full shadow-sm ring-1 ring-black/5 lg:flex lg:flex-auto lg:flex-col dark:shadow-none dark:ring-white/5">
+    <!-- Header controls -->
+    <div class="flex items-center justify-between px-4 py-3 lg:flex-none bg-gray-800/50">
+        <div class="flex items-center gap-2">
+            <div>
+                <div class="relative flex items-center rounded-md bg-white shadow-xs outline -outline-offset-1 outline-gray-300 md:items-stretch dark:bg-white/10 dark:shadow-none dark:outline-white/5">
+                    <button type="button" id="m-calPrev"
+                            class="flex h-9 w-12 items-center justify-center rounded-l-md pr-1 text-gray-400 hover:text-gray-500 focus:relative md:w-9 md:pr-0 md:hover:bg-gray-50 dark:hover:text-white dark:md:hover:bg-white/10">
+                        <span class="sr-only">Previous month</span>
+                        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5">
+                            <path d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"
+                                  clip-rule="evenodd" fill-rule="evenodd"/>
+                        </svg>
+                    </button>
+
+                    <button type="button" id="m-calToday"
+                            class="hidden px-3.5 text-sm font-semibold text-gray-900 hover:bg-gray-50 focus:relative md:block dark:text-white dark:hover:bg-white/10">
+                        Today
+                    </button>
+
+                    <span class="relative -mx-px h-5 w-px bg-gray-300 md:hidden dark:bg-white/10"></span>
+
+                    <button type="button" id="m-calNext"
+                            class="flex h-9 w-12 items-center justify-center rounded-r-md pl-1 text-gray-400 hover:text-gray-500 focus:relative md:w-9 md:pl-0 md:hover:bg-gray-50 dark:hover:text-white dark:md:hover:bg-white/10">
+                        <span class="sr-only">Next month</span>
+                        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5">
+                            <path d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z"
+                                  clip-rule="evenodd" fill-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="text-sm font-semibold text-gray-900 dark:text-white" id="calTitle"></div>
+        </div>
+
+        <!-- Dropdown menu for selecting Day, Week, or Month view -->
+        <select id="m-calendar-view-type"
+                class="flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-xs inset-ring inset-ring-gray-300 hover:bg-gray-50 dark:bg-white/10 dark:text-white dark:shadow-none dark:inset-ring-white/5 dark:hover:bg-white/20">
+            <option class="text-black" value="day">Day</option>
+            <option class="text-black" value="week">Week</option>
+            <option class="text-black" value="month" selected>Month</option>
+        </select>
+    </div>
+
+    <!-- Weekday header (Sun-first) -->
+    <div class="grid grid-cols-7 gap-px border-b border-gray-300 bg-gray-200 text-center text-xs/6 font-semibold text-gray-700 lg:flex-none dark:border-white/5 dark:bg-white/15 dark:text-gray-300">
+        <div class="flex justify-center bg-white py-2 dark:bg-gray-900"><span>S</span><span
+                class="sr-only sm:not-sr-only">un</span></div>
+        <div class="flex justify-center bg-white py-2 dark:bg-gray-900"><span>M</span><span
+                class="sr-only sm:not-sr-only">on</span></div>
+        <div class="flex justify-center bg-white py-2 dark:bg-gray-900"><span>T</span><span
+                class="sr-only sm:not-sr-only">ue</span></div>
+        <div class="flex justify-center bg-white py-2 dark:bg-gray-900"><span>W</span><span
+                class="sr-only sm:not-sr-only">ed</span></div>
+        <div class="flex justify-center bg-white py-2 dark:bg-gray-900"><span>T</span><span
+                class="sr-only sm:not-sr-only">hu</span></div>
+        <div class="flex justify-center bg-white py-2 dark:bg-gray-900"><span>F</span><span
+                class="sr-only sm:not-sr-only">ri</span></div>
+        <div class="flex justify-center bg-white py-2 dark:bg-gray-900"><span>S</span><span
+                class="sr-only sm:not-sr-only">at</span></div>
+    </div>
+
+    <div class="flex bg-gray-200 text-xs/6 text-gray-700 lg:flex-auto dark:bg-white/10 dark:text-gray-300">
+        <div id="calGridDesktop" class="hidden w-full lg:grid lg:grid-cols-7 lg:grid-rows-6 lg:gap-px"></div>
+        <div id="calGridMobile" class="isolate grid w-full grid-cols-7 grid-rows-6 gap-px lg:hidden"></div>
+    </div>
+</div>
+
+<!-- Mobile selected day events list -->
+<div class="relative px-4 py-10 sm:px-6 lg:hidden dark:after:pointer-events-none dark:after:absolute dark:after:inset-x-0 dark:after:top-0 dark:after:h-px dark:after:bg-white/10">
+    <ol id="calMobileList"
+        class="divide-y divide-gray-100 overflow-hidden rounded-lg bg-white text-sm shadow-sm outline-1 outline-black/5 dark:divide-white/10 dark:bg-gray-800/50 dark:shadow-none dark:-outline-offset-1 dark:outline-white/10">
+    </ol>
+</div>
+
+{% block js %}
+    <script>
+        // ---------- Load events_json data ----------
+        const rawEvents = (function () {
+            try {
+                const raw = '{{ events_json|default:""|escapejs }}';
+                if (raw && raw.trim().length) return JSON.parse(raw);
+            } catch (e) {
+                console.warn("events_json parse failed", e);
+            }
+            return [];
+        })();
+
+        console.log("rawEvents from Django:", rawEvents);
+
+        // Convert date format -> month-friendly format
+        const events = rawEvents.map((e, idx) => {
+            const start = (e.start || "");
+            const [datePart, timePart] = start.split("T");
+            return {
+                id: e.id ?? (idx + 1),
+                title: e.title ?? "(Untitled)",
+                date: datePart || "",
+                time: (timePart || "").slice(0, 5), // "HH:MM"
+                location: e.location || "",
+                theme: e.theme || "blue",
+                start: e.start,
+                end: e.end,
+            };
+        });
+
+        console.log("normalized month events:", events);
+
+        // ---------- Helpers ----------
+        const pad2 = (n) => String(n).padStart(2, "0");
+        const ymd = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+        const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        const isSameDay = (a, b) => ymd(a) === ymd(b);
+        const addDays = (date, n) => {
+            const d = new Date(date);
+            d.setDate(d.getDate() + n);
+            return d;
+        };
+
+        // Sunday-first grid
+        function startOfCalendarGrid(viewDate) {
+            const first = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+            const sundayIndex = first.getDay(); // 0=Sun..6=Sat
+            first.setDate(first.getDate() - sundayIndex);
+            return startOfDay(first);
+        }
+
+        function eventsForDateStr(dateStr) {
+            return events
+                .filter(e => e.date === dateStr)
+                .sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+        }
+
+        function formatTimeLabel(t24) {
+            if (!t24) return "";
+            const [hh, mm] = t24.split(":").map(Number);
+            const ampm = hh >= 12 ? "PM" : "AM";
+            const h12 = ((hh + 11) % 12) + 1;
+            return `${h12}${mm ? ":" + pad2(mm) : ""}${ampm}`;
+        }
+
+        // ---------- State ----------
+        const today = startOfDay(new Date());
+        let viewDate = startOfDay(new Date(today.getFullYear(), today.getMonth(), 1));
+        let selectedDate = startOfDay(today);
+
+        // ---------- Elements ----------
+        const elTitle = document.getElementById("calTitle");
+        const elDesktop = document.getElementById("calGridDesktop");
+        const elMobile = document.getElementById("calGridMobile");
+        const elMobileList = document.getElementById("calMobileList");
+
+        // ---------- View switch feature ----------
+        function applyViewType(type) {
+            const month = document.getElementById("calendar-month-container");
+            const week = document.getElementById("calendar-week-container");
+            const day = document.getElementById("calendar-day-container");
+
+            if (month) month.classList.add("hidden");
+            if (week) week.classList.add("hidden");
+            if (day) day.classList.add("hidden");
+
+            if (type === "day" && day) day.classList.remove("hidden");
+            else if (type === "week" && week) week.classList.remove("hidden");
+            else if (month) month.classList.remove("hidden");
+
+            // ---------- Modify other header dropdown ----------
+            const dCalendarViewType = document.getElementById("d-calendar-view-type")
+            const wCalendarViewType = document.getElementById("w-calendar-view-type")
+
+            if (dCalendarViewType) dCalendarViewType.value = type;
+            if (wCalendarViewType) wCalendarViewType.value = type;
+        }
+
+        // ---------- Header nav ----------
+        document.getElementById("m-calPrev").addEventListener("click", () => {
+            viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1);
+            if (selectedDate.getMonth() !== viewDate.getMonth() || selectedDate.getFullYear() !== viewDate.getFullYear()) {
+                selectedDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+            }
+            render();
+        });
+
+        document.getElementById("m-calNext").addEventListener("click", () => {
+            viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1);
+            if (selectedDate.getMonth() !== viewDate.getMonth() || selectedDate.getFullYear() !== viewDate.getFullYear()) {
+                selectedDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+            }
+            render();
+        });
+
+        document.getElementById("m-calToday").addEventListener("click", () => {
+            viewDate = new Date(today.getFullYear(), today.getMonth(), 1);
+            selectedDate = new Date(today);
+            render();
+        });
+
+        function setDataFlags(el, {currentMonth, isToday, isSelected}) {
+            if (currentMonth) el.setAttribute("data-is-current-month", "");
+            else el.removeAttribute("data-is-current-month");
+
+            if (isToday) el.setAttribute("data-is-today", "");
+            else el.removeAttribute("data-is-today");
+
+            if (isSelected) el.setAttribute("data-is-selected", "");
+            else el.removeAttribute("data-is-selected");
+        }
+
+        function renderTitle() {
+            const fmt = new Intl.DateTimeFormat(undefined, {month: "long", year: "numeric"});
+            elTitle.textContent = fmt.format(viewDate);
+        }
+
+        function renderDesktopGrid() {
+            elDesktop.innerHTML = "";
+
+            const gridStart = startOfCalendarGrid(viewDate);
+            const viewMonth = viewDate.getMonth();
+            const viewYear = viewDate.getFullYear();
+
+            for (let i = 0; i < 42; i++) {
+                const day = addDays(gridStart, i);
+                const dateStr = ymd(day);
+                const inMonth = day.getMonth() === viewMonth && day.getFullYear() === viewYear;
+                const isT = isSameDay(day, today);
+                const isS = isSameDay(day, selectedDate);
+
+                const cell = document.createElement("div");
+                cell.className =
+                    "group relative bg-gray-50 px-3 py-2 text-gray-500 data-is-current-month:bg-white dark:bg-gray-900 dark:text-gray-400 " +
+                    "dark:not-data-is-current-month:before:pointer-events-none dark:not-data-is-current-month:before:absolute dark:not-data-is-current-month:before:inset-0 " +
+                    "dark:not-data-is-current-month:before:bg-gray-800/50 dark:data-is-current-month:bg-gray-900";
+
+                setDataFlags(cell, {currentMonth: inMonth, isToday: isT, isSelected: isS});
+
+                cell.addEventListener("click", () => {
+                    selectedDate = startOfDay(day);
+                    render();
+                });
+
+                const timeEl = document.createElement("time");
+                timeEl.setAttribute("datetime", dateStr);
+                timeEl.className =
+                    "relative group-not-data-is-current-month:opacity-75 " +
+                    "in-data-is-today:flex in-data-is-today:size-6 in-data-is-today:items-center in-data-is-today:justify-center " +
+                    "in-data-is-today:rounded-full in-data-is-today:bg-indigo-600 in-data-is-today:font-semibold in-data-is-today:text-white " +
+                    "dark:in-data-is-today:bg-indigo-500";
+                timeEl.textContent = String(day.getDate());
+                cell.appendChild(timeEl);
+
+                const dayEvents = eventsForDateStr(dateStr);
+                if (dayEvents.length) {
+                    const ol = document.createElement("ol");
+                    ol.className = "mt-2";
+
+                    dayEvents.slice(0, 2).forEach(ev => {
+                        const li = document.createElement("li");
+                        const a = document.createElement("a");
+                        a.href = "#";
+                        a.className = "group flex";
+                        a.addEventListener("click", (e) => e.preventDefault());
+
+                        const p = document.createElement("p");
+                        p.className =
+                            "flex-auto truncate font-medium text-gray-900 group-hover:text-indigo-600 dark:text-white dark:group-hover:text-indigo-400";
+                        p.textContent = ev.title;
+
+                        const t = document.createElement("time");
+                        t.setAttribute("datetime", `${ev.date}T${ev.time || "00:00"}`);
+                        t.className =
+                            "ml-3 hidden flex-none text-gray-500 group-hover:text-indigo-600 xl:block dark:text-gray-400 dark:group-hover:text-indigo-400";
+                        t.textContent = formatTimeLabel(ev.time);
+
+                        a.appendChild(p);
+                        if (ev.time) a.appendChild(t);
+                        li.appendChild(a);
+                        ol.appendChild(li);
+                    });
+
+                    cell.appendChild(ol);
+
+                    if (dayEvents.length > 2) {
+                        const more = document.createElement("div");
+                        more.className = "mt-1 text-xs text-gray-500 dark:text-gray-400";
+                        more.textContent = `+${dayEvents.length - 2} more`;
+                        cell.appendChild(more);
+                    }
+                }
+
+                elDesktop.appendChild(cell);
+            }
+        }
+
+        function renderMobileGrid() {
+            elMobile.innerHTML = "";
+
+            const gridStart = startOfCalendarGrid(viewDate);
+            const viewMonth = viewDate.getMonth();
+            const viewYear = viewDate.getFullYear();
+
+            for (let i = 0; i < 42; i++) {
+                const day = addDays(gridStart, i);
+                const dateStr = ymd(day);
+                const inMonth = day.getMonth() === viewMonth && day.getFullYear() === viewYear;
+                const isT = isSameDay(day, today);
+                const isS = isSameDay(day, selectedDate);
+
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className =
+                    "group relative flex h-14 flex-col px-3 py-2 " +
+                    "not-data-is-current-month:bg-gray-50 not-data-is-selected:not-data-is-current-month:not-data-is-today:text-gray-500 " +
+                    "hover:bg-gray-100 focus:z-10 data-is-current-month:bg-white " +
+                    "not-data-is-selected:data-is-current-month:not-data-is-today:text-gray-900 data-is-current-month:hover:bg-gray-100 " +
+                    "data-is-selected:font-semibold data-is-selected:text-white " +
+                    "data-is-today:font-semibold not-data-is-selected:data-is-today:text-indigo-600 " +
+                    "dark:not-data-is-current-month:bg-gray-900 dark:not-data-is-selected:not-data-is-current-month:not-data-is-today:text-gray-400 " +
+                    "dark:not-data-is-current-month:before:pointer-events-none dark:not-data-is-current-month:before:absolute dark:not-data-is-current-month:before:inset-0 " +
+                    "dark:not-data-is-current-month:before:bg-gray-800/50 dark:hover:bg-gray-900/50 dark:data-is-current-month:bg-gray-900 " +
+                    "dark:not-data-is-selected:data-is-current-month:not-data-is-today:text-white dark:data-is-current-month:hover:bg-gray-900/50 " +
+                    "dark:not-data-is-selected:data-is-today:text-indigo-400";
+
+                setDataFlags(btn, {currentMonth: inMonth, isToday: isT, isSelected: isS});
+
+                btn.addEventListener("click", () => {
+                    selectedDate = startOfDay(day);
+                    render();
+                });
+
+                const timeEl = document.createElement("time");
+                timeEl.setAttribute("datetime", dateStr);
+                timeEl.className =
+                    "ml-auto group-not-data-is-current-month:opacity-75 " +
+                    "in-data-is-selected:flex in-data-is-selected:size-6 in-data-is-selected:items-center in-data-is-selected:justify-center " +
+                    "in-data-is-selected:rounded-full in-data-is-selected:not-in-data-is-today:bg-gray-900 in-data-is-selected:in-data-is-today:bg-indigo-600 " +
+                    "dark:in-data-is-selected:not-in-data-is-today:bg-white dark:in-data-is-selected:not-in-data-is-today:text-gray-900 " +
+                    "dark:in-data-is-selected:in-data-is-today:bg-indigo-500";
+                timeEl.textContent = String(day.getDate());
+
+                const dayEvents = eventsForDateStr(dateStr);
+
+                const sr = document.createElement("span");
+                sr.className = "sr-only";
+                sr.textContent = `${dayEvents.length} events`;
+
+                btn.appendChild(timeEl);
+                btn.appendChild(sr);
+
+                if (dayEvents.length) {
+                    const dotsWrap = document.createElement("span");
+                    dotsWrap.className = "-mx-0.5 mt-auto flex flex-wrap-reverse";
+                    const dots = Math.min(dayEvents.length, 3);
+                    for (let d = 0; d < dots; d++) {
+                        const dot = document.createElement("span");
+                        dot.className = "mx-0.5 mb-1 size-1.5 rounded-full bg-gray-400 dark:bg-gray-500";
+                        dotsWrap.appendChild(dot);
+                    }
+                    btn.appendChild(dotsWrap);
+                }
+
+                elMobile.appendChild(btn);
+            }
+        }
+
+        function renderMobileList() {
+            elMobileList.innerHTML = "";
+            const dateStr = ymd(selectedDate);
+            const items = eventsForDateStr(dateStr);
+
+            if (!items.length) {
+                const li = document.createElement("li");
+                li.className = "p-4 text-gray-700 dark:text-gray-300";
+                li.textContent = "No events for this day.";
+                elMobileList.appendChild(li);
+                return;
+            }
+
+            items.forEach(ev => {
+                const li = document.createElement("li");
+                li.className =
+                    "group flex p-4 pr-6 focus-within:bg-gray-50 hover:bg-gray-50 dark:focus-within:bg-white/5 dark:hover:bg-white/5";
+
+                const left = document.createElement("div");
+                left.className = "flex-auto";
+
+                const p = document.createElement("p");
+                p.className = "font-semibold text-gray-900 dark:text-white";
+                p.textContent = ev.title;
+
+                const time = document.createElement("time");
+                time.setAttribute("datetime", `${ev.date}T${ev.time || "00:00"}`);
+                time.className = "mt-2 flex items-center text-gray-700 dark:text-gray-300";
+                time.innerHTML = `
+                    <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="mr-2 size-5 text-gray-400 dark:text-gray-500">
+                        <path d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z" clip-rule="evenodd" fill-rule="evenodd"/>
+                    </svg>
+                    ${formatTimeLabel(ev.time) || "All day"}
+                `;
+
+                left.appendChild(p);
+
+                if (ev.location) {
+                    const loc = document.createElement("p");
+                    loc.className = "mt-1 text-gray-600 dark:text-gray-400";
+                    loc.textContent = ev.location;
+                    left.appendChild(loc);
+                }
+
+                left.appendChild(time);
+
+                li.appendChild(left);
+                elMobileList.appendChild(li);
+            });
+        }
+
+        function render() {
+            const fmt = new Intl.DateTimeFormat(undefined, {month: "long", year: "numeric"});
+            elTitle.textContent = fmt.format(viewDate);
+
+            renderDesktopGrid();
+            renderMobileGrid();
+            renderMobileList();
+        }
+
+        // dropdown
+        const calendarViewType = document.getElementById("m-calendar-view-type");
+        calendarViewType.addEventListener("change", () => applyViewType(calendarViewType.value));
+
+        // init
+        render();
+        applyViewType(calendarViewType.value);
+    </script>
+{% endblock %}
